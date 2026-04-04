@@ -40,10 +40,40 @@ class VehicleWorkForm
                             ->visibility('public')
                             ->multiple()
                             ->reorderable()
+                            ->appendFiles()
                             ->maxFiles(10)
                             ->maxParallelUploads(1)
+                            ->automaticallyResizeImagesMode('contain')
+                            ->automaticallyResizeImagesToWidth('1000')
+                            ->automaticallyResizeImagesToHeight('1000')
+                            ->automaticallyUpscaleImagesWhenResizing(false)
+                            ->imagePreviewHeight('220')
                             ->openable()
                             ->downloadable()
+                            ->extraAlpineAttributes([
+                                'x-init' => <<<'JS'
+                                    let compressionAttempts = 0
+
+                                    const applyCompressionOptions = () => {
+                                        if (pond?.setOptions) {
+                                            pond.setOptions({
+                                                imageTransformOutputMimeType: 'image/jpeg',
+                                                imageTransformOutputQuality: 70,
+                                                imageTransformOutputQualityMode: 'always',
+                                            })
+
+                                            return
+                                        }
+
+                                        if (compressionAttempts < 20) {
+                                            compressionAttempts++
+                                            setTimeout(applyCompressionOptions, 150)
+                                        }
+                                    }
+
+                                    applyCompressionOptions()
+                                JS,
+                            ])
                             ->columnSpanFull(),
                         Select::make('status')
                             ->label('Estado')
