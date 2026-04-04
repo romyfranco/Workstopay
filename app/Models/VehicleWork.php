@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\VehicleWorkStatus;
+use Illuminate\Database\Eloquent\Model;
+
+class VehicleWork extends Model
+{
+    protected $fillable = [
+        'plate',
+        'vehicle',
+        'job_description',
+        'job_photos',
+        'status',
+        'paid',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'job_photos' => 'array',
+            'status' => VehicleWorkStatus::class,
+            'paid' => 'boolean',
+        ];
+    }
+}
