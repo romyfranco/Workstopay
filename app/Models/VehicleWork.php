@@ -14,6 +14,7 @@ class VehicleWork extends Model
         'job_photos',
         'status',
         'paid',
+        'payment_sent',
     ];
 
     protected function casts(): array
@@ -22,6 +23,7 @@ class VehicleWork extends Model
             'job_photos' => 'array',
             'status' => VehicleWorkStatus::class,
             'paid' => 'boolean',
+            'payment_sent' => 'boolean',
         ];
     }
 }

@@ -87,6 +87,10 @@ class VehicleWorkForm
                             ->label('Pagado')
                             ->default(false)
                             ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
+                        Toggle::make('payment_sent')
+                            ->label('Pago enviado')
+                            ->default(false)
+                            ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
                     ])
                     ->columns(2),
             ]);

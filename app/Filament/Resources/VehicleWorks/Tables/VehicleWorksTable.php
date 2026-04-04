@@ -44,6 +44,10 @@ class VehicleWorksTable
                     ->label('Pagado')
                     ->sortable()
                     ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
+                ToggleColumn::make('payment_sent')
+                    ->label('Pago enviado')
+                    ->sortable()
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y H:i')

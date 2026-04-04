@@ -58,9 +58,36 @@ class FrontendAccessController extends Controller
             'vehicleWorks' => VehicleWork::query()
                 ->where('status', VehicleWorkStatus::Completed->value)
                 ->where('paid', false)
+                ->where(function ($query): void {
+                    $query
+                        ->where('payment_sent', false)
+                        ->orWhereNull('payment_sent');
+                })
                 ->latest()
                 ->get(),
         ]);
+    }
+
+    public function markPaymentSent(Request $request, VehicleWork $vehicleWork): RedirectResponse
+    {
+        if (! (bool) $request->session()->get('frontend_access_granted')) {
+            return redirect()->route('frontend.access');
+        }
+
+        abort_unless(
+            $vehicleWork->status === VehicleWorkStatus::Completed
+            && ! $vehicleWork->paid
+            && ! $vehicleWork->payment_sent,
+            404,
+        );
+
+        $vehicleWork->forceFill([
+            'payment_sent' => true,
+        ])->save();
+
+        return redirect()
+            ->route('frontend.vehicle-works')
+            ->with('status', 'El pago fue marcado como enviado.');
     }
 
     public function logout(Request $request): RedirectResponse

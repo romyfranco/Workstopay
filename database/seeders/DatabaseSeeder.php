@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
                 'job_photos' => [],
                 'status' => VehicleWorkStatus::Completed,
                 'paid' => false,
+                'payment_sent' => false,
             ],
         );
 
@@ -64,6 +65,7 @@ class DatabaseSeeder extends Seeder
                 'job_photos' => [],
                 'status' => VehicleWorkStatus::InProgress,
                 'paid' => true,
+                'payment_sent' => false,
             ],
         );
     }

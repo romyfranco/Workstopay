@@ -28,6 +28,7 @@ class FrontendAccessTest extends TestCase
             'job_photos' => [],
             'status' => VehicleWorkStatus::Completed,
             'paid' => false,
+            'payment_sent' => false,
         ]);
 
         VehicleWork::query()->create([
@@ -37,6 +38,7 @@ class FrontendAccessTest extends TestCase
             'job_photos' => ['vehicle-works/test.jpg'],
             'status' => VehicleWorkStatus::Completed,
             'paid' => true,
+            'payment_sent' => false,
         ]);
 
         VehicleWork::query()->create([
@@ -46,6 +48,17 @@ class FrontendAccessTest extends TestCase
             'job_photos' => [],
             'status' => VehicleWorkStatus::InProgress,
             'paid' => false,
+            'payment_sent' => false,
+        ]);
+
+        VehicleWork::query()->create([
+            'plate' => 'DDD444',
+            'vehicle' => 'Hyundai Tucson',
+            'job_description' => 'Pago ya reportado por el cliente.',
+            'job_photos' => [],
+            'status' => VehicleWorkStatus::Completed,
+            'paid' => false,
+            'payment_sent' => true,
         ]);
 
         $this->get('/vehiculos')
@@ -67,10 +80,13 @@ class FrontendAccessTest extends TestCase
             ->assertSee('Cambio de bateria.')
             ->assertSee('Vehiculos terminados')
             ->assertSee('Descripcion del trabajo')
+            ->assertSee('Pago enviado')
             ->assertDontSee('Mazda CX5')
             ->assertDontSee('Trabajo ya cancelado.')
             ->assertDontSee('Kia Sportage')
             ->assertDontSee('Trabajo aun en proceso.')
+            ->assertDontSee('Hyundai Tucson')
+            ->assertDontSee('Pago ya reportado por el cliente.')
             ->assertDontSee('Foto del trabajo')
             ->assertDontSee('Creado')
             ->assertDontSee('Pagado');
@@ -80,6 +96,42 @@ class FrontendAccessTest extends TestCase
             'event' => 'frontend_password_used',
             'display_name' => 'Cliente',
         ]);
+    }
+
+    public function test_frontend_can_mark_payment_as_sent(): void
+    {
+        FrontendPassword::query()->create([
+            'name' => 'Cliente',
+            'password' => 'consulta-segura',
+            'is_active' => true,
+        ]);
+
+        $vehicleWork = VehicleWork::query()->create([
+            'plate' => 'EEE555',
+            'vehicle' => 'Nissan Versa',
+            'job_description' => 'Listo para confirmar envio de pago.',
+            'job_photos' => [],
+            'status' => VehicleWorkStatus::Completed,
+            'paid' => false,
+            'payment_sent' => false,
+        ]);
+
+        $this->post('/acceso', [
+            'password' => 'consulta-segura',
+        ])->assertRedirect('/vehiculos');
+
+        $this->post(route('frontend.vehicle-works.payment-sent', $vehicleWork))
+            ->assertRedirect('/vehiculos');
+
+        $this->assertDatabaseHas('vehicle_works', [
+            'id' => $vehicleWork->id,
+            'payment_sent' => true,
+        ]);
+
+        $this->get('/vehiculos')
+            ->assertOk()
+            ->assertDontSee('Nissan Versa')
+            ->assertDontSee('Listo para confirmar envio de pago.');
     }
 
     public function test_panel_user_login_is_recorded(): void

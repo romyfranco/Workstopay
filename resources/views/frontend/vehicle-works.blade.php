@@ -146,6 +146,39 @@
                 color: var(--muted);
             }
 
+            .status-banner {
+                margin-bottom: 18px;
+                padding: 14px 16px;
+                border: 1px solid #bad6bf;
+                border-radius: 18px;
+                background: #eef9ef;
+                color: #235731;
+                font-weight: 700;
+            }
+
+            .actions-cell {
+                width: 190px;
+            }
+
+            .send-payment-form {
+                margin: 0;
+            }
+
+            .send-payment-button {
+                width: 100%;
+                padding: 12px 14px;
+                border: 0;
+                border-radius: 14px;
+                background: var(--accent);
+                color: #fff;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+            .send-payment-button:hover {
+                filter: brightness(0.96);
+            }
+
             @media (max-width: 720px) {
                 .topbar {
                     flex-direction: column;
@@ -169,7 +202,7 @@
                     <span class="token">Acceso validado</span>
                     <h1>Vehiculos terminados</h1>
                     <p>
-                        Accediste con {{ $accessName }}. Esta vista muestra solo trabajos terminados y no pagados.
+                        Accediste con {{ $accessName }}. Esta vista muestra solo trabajos terminados, no pagados y con pago no enviado.
                     </p>
                 </div>
 
@@ -179,9 +212,15 @@
                 </form>
             </section>
 
+            @if (session('status'))
+                <section class="status-banner">
+                    {{ session('status') }}
+                </section>
+            @endif
+
             @if ($vehicleWorks->isEmpty())
                 <section class="empty">
-                    No hay trabajos terminados pendientes de pago en este momento.
+                    No hay trabajos terminados pendientes de pago por enviar en este momento.
                 </section>
             @else
                 <section class="table-panel">
@@ -191,6 +230,7 @@
                                 <th>Placa</th>
                                 <th>Vehiculo</th>
                                 <th>Descripcion del trabajo</th>
+                                <th>Accion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -201,6 +241,18 @@
                                     </td>
                                     <td class="vehicle">{{ $vehicleWork->vehicle }}</td>
                                     <td class="description">{{ $vehicleWork->job_description }}</td>
+                                    <td class="actions-cell">
+                                        <form
+                                            method="POST"
+                                            action="{{ route('frontend.vehicle-works.payment-sent', $vehicleWork) }}"
+                                            class="send-payment-form"
+                                        >
+                                            @csrf
+                                            <button type="submit" class="send-payment-button">
+                                                Pago enviado
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
