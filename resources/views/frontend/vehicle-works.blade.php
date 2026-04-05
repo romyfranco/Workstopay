@@ -112,6 +112,16 @@
                 vertical-align: top;
             }
 
+            .cell-label {
+                display: none;
+                margin-bottom: 8px;
+                color: var(--accent);
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
             tbody tr:nth-child(even) {
                 background: var(--stripe);
             }
@@ -194,17 +204,79 @@
             }
 
             @media (max-width: 720px) {
+                .shell {
+                    width: min(100% - 20px, 100%);
+                    padding: 16px 0 28px;
+                }
+
                 .topbar {
                     flex-direction: column;
                     align-items: flex-start;
+                    padding: 16px;
+                    border-radius: 20px;
+                }
+
+                .topbar form,
+                .topbar form button {
+                    width: 100%;
                 }
 
                 .table-panel {
-                    overflow-x: auto;
+                    padding: 14px;
+                    background: transparent;
+                    border-radius: 24px;
                 }
 
                 table {
-                    min-width: 700px;
+                    display: block;
+                }
+
+                thead {
+                    display: none;
+                }
+
+                tbody {
+                    display: grid;
+                    gap: 14px;
+                }
+
+                tbody tr {
+                    display: block;
+                    border: 1px solid var(--line);
+                    border-radius: 20px;
+                    background: rgba(255, 253, 250, 0.92);
+                    box-shadow: 0 14px 24px rgba(92, 62, 36, 0.08);
+                    overflow: hidden;
+                }
+
+                tbody tr:nth-child(even) {
+                    background: rgba(255, 253, 250, 0.92);
+                }
+
+                tbody td {
+                    display: block;
+                    padding: 14px 16px;
+                    border-top: 0;
+                }
+
+                tbody td + td {
+                    border-top: 1px solid var(--line);
+                }
+
+                .cell-label {
+                    display: block;
+                }
+
+                .actions-cell {
+                    width: auto;
+                }
+
+                .comment-box {
+                    min-height: 110px;
+                }
+
+                .send-payment-button {
+                    padding: 14px 16px;
                 }
             }
         </style>
@@ -251,11 +323,19 @@
                             @foreach ($vehicleWorks as $vehicleWork)
                                 <tr>
                                     <td>
+                                        <span class="cell-label">Placa</span>
                                         <span class="plate">{{ strtoupper($vehicleWork->plate) }}</span>
                                     </td>
-                                    <td class="vehicle">{{ $vehicleWork->vehicle }}</td>
-                                    <td class="description">{{ $vehicleWork->job_description }}</td>
+                                    <td class="vehicle">
+                                        <span class="cell-label">Vehiculo</span>
+                                        {{ $vehicleWork->vehicle }}
+                                    </td>
+                                    <td class="description">
+                                        <span class="cell-label">Descripcion del trabajo</span>
+                                        {{ $vehicleWork->job_description }}
+                                    </td>
                                     <td class="actions-cell">
+                                        <span class="cell-label">Accion</span>
                                         <form
                                             method="POST"
                                             action="{{ route('frontend.vehicle-works.payment-sent', $vehicleWork) }}"

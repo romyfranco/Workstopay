@@ -80,7 +80,7 @@ class FrontendAccessTest extends TestCase
             ->assertSee('Cambio de bateria.')
             ->assertSee('Vehiculos terminados')
             ->assertSee('Descripcion del trabajo')
-            ->assertSee('Pago enviado')
+            ->assertSee('Enviar pago')
             ->assertDontSee('Mazda CX5')
             ->assertDontSee('Trabajo ya cancelado.')
             ->assertDontSee('Kia Sportage')
