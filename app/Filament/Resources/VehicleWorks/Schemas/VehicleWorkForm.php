@@ -32,6 +32,13 @@ class VehicleWorkForm
                             ->required()
                             ->rows(5)
                             ->columnSpanFull(),
+                        Textarea::make('comment')
+                            ->label('Comentario')
+                            ->rows(4)
+                            ->maxLength(2000)
+                            ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false)
+                            ->dehydrated(fn (): bool => auth()->user()?->isAdmin() ?? false)
+                            ->columnSpanFull(),
                         FileUpload::make('job_photos')
                             ->label('Fotos del trabajo')
                             ->image()

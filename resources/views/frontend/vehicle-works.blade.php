@@ -137,6 +137,24 @@
                 white-space: pre-line;
             }
 
+            .send-payment-form {
+                display: grid;
+                gap: 10px;
+                margin: 0;
+            }
+
+            .comment-box {
+                width: 100%;
+                min-height: 96px;
+                padding: 12px 14px;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                background: #fff;
+                color: var(--ink);
+                font: inherit;
+                resize: vertical;
+            }
+
             .empty {
                 padding: 28px;
                 border: 1px dashed var(--line);
@@ -157,11 +175,7 @@
             }
 
             .actions-cell {
-                width: 190px;
-            }
-
-            .send-payment-form {
-                margin: 0;
+                width: 280px;
             }
 
             .send-payment-button {
@@ -248,8 +262,14 @@
                                             class="send-payment-form"
                                         >
                                             @csrf
+                                            <textarea
+                                                name="comment"
+                                                class="comment-box"
+                                                placeholder="Agrega un comentario"
+                                                maxlength="2000"
+                                            >{{ old('comment') }}</textarea>
                                             <button type="submit" class="send-payment-button">
-                                                Pago enviado
+                                                Enviar pago
                                             </button>
                                         </form>
                                     </td>

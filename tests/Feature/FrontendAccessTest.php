@@ -120,11 +120,14 @@ class FrontendAccessTest extends TestCase
             'password' => 'consulta-segura',
         ])->assertRedirect('/vehiculos');
 
-        $this->post(route('frontend.vehicle-works.payment-sent', $vehicleWork))
+        $this->post(route('frontend.vehicle-works.payment-sent', $vehicleWork), [
+            'comment' => 'Transferencia programada para hoy.',
+        ])
             ->assertRedirect('/vehiculos');
 
         $this->assertDatabaseHas('vehicle_works', [
             'id' => $vehicleWork->id,
+            'comment' => 'Transferencia programada para hoy.',
             'payment_sent' => true,
         ]);
 

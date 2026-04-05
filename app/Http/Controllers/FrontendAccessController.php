@@ -74,6 +74,10 @@ class FrontendAccessController extends Controller
             return redirect()->route('frontend.access');
         }
 
+        $validated = $request->validate([
+            'comment' => ['nullable', 'string', 'max:2000'],
+        ]);
+
         abort_unless(
             $vehicleWork->status === VehicleWorkStatus::Completed
             && ! $vehicleWork->paid
@@ -82,6 +86,7 @@ class FrontendAccessController extends Controller
         );
 
         $vehicleWork->forceFill([
+            'comment' => blank($validated['comment'] ?? null) ? null : $validated['comment'],
             'payment_sent' => true,
         ])->save();
 

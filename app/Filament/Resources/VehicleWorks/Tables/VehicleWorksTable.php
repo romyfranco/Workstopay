@@ -29,6 +29,12 @@ class VehicleWorksTable
                     ->label('Descripcion')
                     ->limit(50)
                     ->wrap(),
+                TextColumn::make('comment')
+                    ->label('Comentario')
+                    ->limit(50)
+                    ->wrap()
+                    ->toggleable()
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()

@@ -11,6 +11,7 @@ class VehicleWork extends Model
         'plate',
         'vehicle',
         'job_description',
+        'comment',
         'job_photos',
         'status',
         'paid',
