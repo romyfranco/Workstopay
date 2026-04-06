@@ -58,7 +58,18 @@ class VehicleWorkResource extends Resource
         if ($user instanceof User && $user->isTechnician()) {
             $query
                 ->where('paid', false)
-                ->where('status', VehicleWorkStatus::InProgress->value);
+                ->whereIn('status', [
+                    VehicleWorkStatus::InProgress->value,
+                    VehicleWorkStatus::Waiting->value,
+                ])
+                ->orderByRaw(
+                    'case when status = ? then 0 when status = ? then 1 else 2 end',
+                    [
+                        VehicleWorkStatus::InProgress->value,
+                        VehicleWorkStatus::Waiting->value,
+                    ],
+                )
+                ->latest();
         }
 
         return $query;

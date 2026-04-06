@@ -41,11 +41,11 @@ class VehicleWorksTable
                     ->sortable()
                     ->color(fn ($state): string => match ($state) {
                         VehicleWorkStatus::InProgress => 'success',
+                        VehicleWorkStatus::Waiting => 'warning',
                         VehicleWorkStatus::Completed => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn ($state): string => $state?->label() ?? '-')
-                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
+                    ->formatStateUsing(fn ($state): string => $state?->label() ?? '-'),
                 ToggleColumn::make('paid')
                     ->label('Pagado')
                     ->sortable()
@@ -57,11 +57,13 @@ class VehicleWorksTable
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false),
             ])
             ->filters([
                 //
             ])
+            ->recordClasses(fn ($record): ?string => auth()->user()?->isTechnician() && $record->status === VehicleWorkStatus::Waiting ? 'opacity-60' : null)
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make()

@@ -19,7 +19,10 @@ class VehicleWorkPolicy
             return true;
         }
 
-        return ! $vehicleWork->paid && $vehicleWork->status === VehicleWorkStatus::InProgress;
+        return ! $vehicleWork->paid && in_array($vehicleWork->status, [
+            VehicleWorkStatus::InProgress,
+            VehicleWorkStatus::Waiting,
+        ], true);
     }
 
     public function create(User $user): bool

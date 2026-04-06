@@ -84,12 +84,23 @@ class VehicleWorkForm
                             ->columnSpanFull(),
                         Select::make('status')
                             ->label('Estado')
-                            ->options(VehicleWorkStatus::options())
+                            ->options(function (): array {
+                                $user = auth()->user();
+
+                                if ($user?->isTechnician()) {
+                                    return [
+                                        VehicleWorkStatus::InProgress->value => VehicleWorkStatus::InProgress->label(),
+                                        VehicleWorkStatus::Waiting->value => VehicleWorkStatus::Waiting->label(),
+                                    ];
+                                }
+
+                                return VehicleWorkStatus::options();
+                            })
                             ->default(VehicleWorkStatus::InProgress->value)
                             ->native(false)
-                            ->required(fn (): bool => auth()->user()?->isAdmin() ?? false)
-                            ->visible(fn (): bool => auth()->user()?->isAdmin() ?? false)
-                            ->dehydrated(fn (): bool => auth()->user()?->isAdmin() ?? false),
+                            ->required(fn (): bool => auth()->check())
+                            ->visible(fn (): bool => auth()->check())
+                            ->dehydrated(fn (): bool => auth()->check()),
                         Toggle::make('paid')
                             ->label('Pagado')
                             ->default(false)

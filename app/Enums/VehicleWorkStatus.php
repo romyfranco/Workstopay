@@ -5,12 +5,14 @@ namespace App\Enums;
 enum VehicleWorkStatus: string
 {
     case InProgress = 'in_progress';
+    case Waiting = 'waiting';
     case Completed = 'completed';
 
     public function label(): string
     {
         return match ($this) {
             self::InProgress => 'En proceso',
+            self::Waiting => 'En espera',
             self::Completed => 'Terminado',
         };
     }
