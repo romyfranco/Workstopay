@@ -61,18 +61,18 @@ class VehicleWorkResource extends Resource
                 ->whereIn('status', [
                     VehicleWorkStatus::InProgress->value,
                     VehicleWorkStatus::Waiting->value,
-                ])
-                ->orderByRaw(
-                    'case when status = ? then 0 when status = ? then 1 else 2 end',
-                    [
-                        VehicleWorkStatus::InProgress->value,
-                        VehicleWorkStatus::Waiting->value,
-                    ],
-                )
-                ->latest();
+                ]);
         }
 
-        return $query;
+        return $query
+            ->orderByRaw(
+                'case when status = ? then 0 when status = ? then 1 else 2 end',
+                [
+                    VehicleWorkStatus::InProgress->value,
+                    VehicleWorkStatus::Waiting->value,
+                ],
+            )
+            ->latest();
     }
 
     public static function getPages(): array
