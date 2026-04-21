@@ -25,7 +25,7 @@ class FrontendAccessTest extends TestCase
             'plate' => 'AAA111',
             'vehicle' => 'Renault Logan',
             'job_description' => 'Cambio de bateria.',
-            'job_photos' => [],
+            'job_photos' => ['vehicle-works/renault-logan.jpg'],
             'status' => VehicleWorkStatus::Completed,
             'paid' => false,
             'payment_sent' => false,
@@ -80,6 +80,8 @@ class FrontendAccessTest extends TestCase
             ->assertSee('Cambio de bateria.')
             ->assertSee('Vehiculos terminados')
             ->assertSee('Descripcion del trabajo')
+            ->assertSee('Fotos')
+            ->assertSee('vehicle-works/renault-logan.jpg')
             ->assertSee('Enviar pago')
             ->assertDontSee('Mazda CX5')
             ->assertDontSee('Trabajo ya cancelado.')
@@ -87,7 +89,6 @@ class FrontendAccessTest extends TestCase
             ->assertDontSee('Trabajo aun en proceso.')
             ->assertDontSee('Hyundai Tucson')
             ->assertDontSee('Pago ya reportado por el cliente.')
-            ->assertDontSee('Foto del trabajo')
             ->assertDontSee('Creado')
             ->assertDontSee('Pagado');
 

@@ -147,6 +147,37 @@
                 white-space: pre-line;
             }
 
+            .photos-cell {
+                min-width: 200px;
+            }
+
+            .photo-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .photo-link {
+                display: block;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--line);
+                background: #fff;
+                box-shadow: 0 8px 18px rgba(92, 62, 36, 0.08);
+            }
+
+            .photo-thumb {
+                display: block;
+                width: 92px;
+                height: 92px;
+                object-fit: cover;
+            }
+
+            .photo-empty {
+                color: var(--muted);
+                font-size: 14px;
+            }
+
             .send-payment-form {
                 display: grid;
                 gap: 10px;
@@ -316,6 +347,7 @@
                                 <th>Placa</th>
                                 <th>Vehiculo</th>
                                 <th>Descripcion del trabajo</th>
+                                <th>Fotos</th>
                                 <th>Accion</th>
                             </tr>
                         </thead>
@@ -333,6 +365,30 @@
                                     <td class="description">
                                         <span class="cell-label">Descripcion del trabajo</span>
                                         {{ $vehicleWork->job_description }}
+                                    </td>
+                                    <td class="photos-cell">
+                                        <span class="cell-label">Fotos</span>
+                                        @if (filled($vehicleWork->job_photos))
+                                            <div class="photo-grid">
+                                                @foreach ($vehicleWork->job_photos as $photo)
+                                                    <a
+                                                        href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($photo) }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="photo-link"
+                                                    >
+                                                        <img
+                                                            src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($photo) }}"
+                                                            alt="Foto del trabajo de {{ $vehicleWork->vehicle }}"
+                                                            class="photo-thumb"
+                                                            loading="lazy"
+                                                        >
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span class="photo-empty">Sin fotos</span>
+                                        @endif
                                     </td>
                                     <td class="actions-cell">
                                         <span class="cell-label">Accion</span>
