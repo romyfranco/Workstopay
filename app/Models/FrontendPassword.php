@@ -11,6 +11,7 @@ class FrontendPassword extends Model
         'name',
         'password',
         'is_active',
+        'can_view_electric_avenue',
     ];
 
     protected function casts(): array
@@ -18,6 +19,7 @@ class FrontendPassword extends Model
         return [
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'can_view_electric_avenue' => 'boolean',
         ];
     }
 

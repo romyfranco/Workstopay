@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Vehiculos terminados</title>
+        <title>{{ $isElectricAvenue ? 'ELECTRIC AVENUE' : 'Vehiculos terminados' }}</title>
         <style>
             :root {
                 color-scheme: light;
@@ -80,6 +80,28 @@
                 color: #fff;
                 font-weight: 700;
                 cursor: pointer;
+            }
+
+            .list-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .list-tabs a {
+                padding: 12px 16px;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                background: var(--panel);
+                color: var(--ink);
+                text-decoration: none;
+                font-weight: 700;
+            }
+
+            .list-tabs a[aria-current="page"] {
+                background: var(--accent);
+                color: #fff;
             }
 
             .table-panel {
@@ -170,7 +192,7 @@
                 display: block;
                 width: 92px;
                 height: 92px;
-                object-fit: cover;
+                object-fit: contain;
             }
 
             .photo-empty {
@@ -317,9 +339,13 @@
             <section class="topbar">
                 <div class="headline">
                     <span class="token">Acceso validado</span>
-                    <h1>Vehiculos terminados</h1>
+                    <h1>{{ $isElectricAvenue ? 'ELECTRIC AVENUE' : 'Vehiculos terminados' }}</h1>
                     <p>
+                        @if ($isElectricAvenue)
+                        Accediste con {{ $accessName }}. Esta vista muestra los vehiculos EV AVENUE terminados y no pagados, incluso con pago enviado.
+                        @else
                         Accediste con {{ $accessName }}. Esta vista muestra solo trabajos terminados, no pagados y con pago no enviado.
+                        @endif
                     </p>
                 </div>
 
@@ -329,6 +355,13 @@
                 </form>
             </section>
 
+            <nav class="list-tabs" aria-label="Listas de vehiculos">
+                <a href="{{ route('frontend.vehicle-works') }}" @if (! $isElectricAvenue) aria-current="page" @endif>Vehiculos terminados</a>
+                @if ($canViewElectricAvenue)
+                    <a href="{{ route('frontend.electric-avenue') }}" @if ($isElectricAvenue) aria-current="page" @endif>ELECTRIC AVENUE</a>
+                @endif
+            </nav>
+
             @if (session('status'))
                 <section class="status-banner">
                     {{ session('status') }}
@@ -337,7 +370,7 @@
 
             @if ($vehicleWorks->isEmpty())
                 <section class="empty">
-                    No hay trabajos terminados pendientes de pago por enviar en este momento.
+                    {{ $isElectricAvenue ? 'No hay vehiculos EV AVENUE terminados y no pagados en este momento.' : 'No hay trabajos terminados pendientes de pago por enviar en este momento.' }}
                 </section>
             @else
                 <section class="table-panel">
@@ -370,15 +403,15 @@
                                         <span class="cell-label">Fotos</span>
                                         @if (filled($vehicleWork->job_photos))
                                             <div class="photo-grid">
-                                                @foreach ($vehicleWork->job_photos as $photo)
+                                                @foreach ($vehicleWork->job_photos as $photoIndex => $photo)
                                                     <a
-                                                        href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($photo) }}"
+                                                        href="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex]) }}"
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         class="photo-link"
                                                     >
                                                         <img
-                                                            src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($photo) }}"
+                                                            src="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex]) }}"
                                                             alt="Foto del trabajo de {{ $vehicleWork->vehicle }}"
                                                             class="photo-thumb"
                                                             loading="lazy"
@@ -392,12 +425,21 @@
                                     </td>
                                     <td class="actions-cell">
                                         <span class="cell-label">Accion</span>
+                                        @if ($isElectricAvenue && $vehicleWork->payment_sent)
+                                            <span class="token">Pago enviado</span>
+                                            @if (filled($vehicleWork->comment))
+                                                <p class="description">{{ $vehicleWork->comment }}</p>
+                                            @endif
+                                        @else
                                         <form
                                             method="POST"
                                             action="{{ route('frontend.vehicle-works.payment-sent', $vehicleWork) }}"
                                             class="send-payment-form"
                                         >
                                             @csrf
+                                            @if ($isElectricAvenue)
+                                                <input type="hidden" name="list" value="electric-avenue">
+                                            @endif
                                             <textarea
                                                 name="comment"
                                                 class="comment-box"
@@ -408,6 +450,7 @@
                                                 Enviar pago
                                             </button>
                                         </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

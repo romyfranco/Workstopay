@@ -26,6 +26,9 @@ class FrontendPasswordsTable
                     ->label('Actualizada')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
+                IconColumn::make('can_view_electric_avenue')
+                    ->label('ELECTRIC AVENUE')
+                    ->boolean(),
             ])
             ->filters([
                 //

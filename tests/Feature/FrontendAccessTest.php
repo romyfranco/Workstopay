@@ -81,7 +81,7 @@ class FrontendAccessTest extends TestCase
             ->assertSee('Vehiculos terminados')
             ->assertSee('Descripcion del trabajo')
             ->assertSee('Fotos')
-            ->assertSee('vehicle-works/renault-logan.jpg')
+            ->assertSee('/fotos/0')
             ->assertSee('Enviar pago')
             ->assertDontSee('Mazda CX5')
             ->assertDontSee('Trabajo ya cancelado.')
@@ -156,5 +156,91 @@ class FrontendAccessTest extends TestCase
             'user_role' => 'admin',
             'display_name' => 'Admin de prueba',
         ]);
+    }
+
+    public function test_electric_avenue_has_independent_filters_and_requires_access(): void
+    {
+        $this->get('/electric-avenue')->assertRedirect('/');
+        $password = FrontendPassword::query()->create([
+            'name' => 'EV Cliente',
+            'password' => 'ev-segura',
+            'is_active' => true,
+            'can_view_electric_avenue' => true,
+        ]);
+
+        $cases = [
+            ['EV001', 'Tesla EV AVENUE Model 3', VehicleWorkStatus::Completed, false, false],
+            ['EV002', 'EV AVENUE Model Y', VehicleWorkStatus::Completed, false, true],
+            ['EV003', 'Tesla EV AVENUE', VehicleWorkStatus::Completed, true, false],
+            ['EV004', 'Tesla EV AVENUE', VehicleWorkStatus::InProgress, false, false],
+            ['EV005', 'Tesla EV AVENUE', VehicleWorkStatus::Waiting, false, false],
+            ['OTHER01', 'Tesla Model S', VehicleWorkStatus::Completed, false, false],
+        ];
+
+        foreach ($cases as [$plate, $vehicle, $status, $paid, $paymentSent]) {
+            VehicleWork::query()->create([
+                'plate' => $plate,
+                'vehicle' => $vehicle,
+                'job_description' => 'Trabajo de prueba',
+                'job_photos' => ['vehicle-works/test.jpg'],
+                'status' => $status,
+                'paid' => $paid,
+                'payment_sent' => $paymentSent,
+            ]);
+        }
+
+        $this->withSession(['frontend_access_granted' => true, 'frontend_access_name' => 'Cliente', 'frontend_password_id' => $password->id])
+            ->get('/electric-avenue')
+            ->assertOk()
+            ->assertSee('EV001')->assertSee('EV002')
+            ->assertDontSee('EV003')->assertDontSee('EV004')->assertDontSee('EV005')
+            ->assertDontSee('OTHER01')
+            ->assertSee('/fotos/0')
+            ->assertSee('Pago enviado');
+
+        $this->get('/vehiculos')->assertOk()
+            ->assertSee('EV001')->assertSee('OTHER01')->assertDontSee('EV002');
+
+        $work = VehicleWork::query()->where('plate', 'EV001')->firstOrFail();
+        $this->post(route('frontend.vehicle-works.payment-sent', $work), [
+            'list' => 'electric-avenue',
+            'comment' => 'Transferencia enviada',
+        ])->assertRedirect('/electric-avenue');
+
+        $this->get('/electric-avenue')->assertOk()->assertSee('EV001')->assertSee('Transferencia enviada');
+        $this->get('/vehiculos')->assertOk()->assertDontSee('EV001')->assertSee('OTHER01');
+        $this->assertDatabaseHas('vehicle_works', ['id' => $work->id, 'paid' => false, 'payment_sent' => true]);
+
+        $work->update(['paid' => true]);
+        $this->get('/electric-avenue')->assertOk()->assertDontSee('EV001');
+    }
+
+    public function test_electric_avenue_permission_is_checked_on_each_request(): void
+    {
+        $password = FrontendPassword::query()->create([
+            'name' => 'Acceso configurable',
+            'password' => 'clave-prueba',
+            'is_active' => true,
+        ]);
+
+        $this->post('/acceso', ['password' => 'clave-prueba'])
+            ->assertRedirect('/vehiculos')
+            ->assertSessionHas('frontend_password_id', $password->id);
+        $this->get('/vehiculos')->assertOk()->assertDontSee('ELECTRIC AVENUE');
+        $this->get('/electric-avenue')->assertForbidden();
+
+        $password->update(['can_view_electric_avenue' => true]);
+        $this->get('/vehiculos')->assertOk()->assertSee('ELECTRIC AVENUE');
+        $this->get('/electric-avenue')->assertOk();
+
+        $password->update(['can_view_electric_avenue' => false]);
+        $this->get('/electric-avenue')->assertForbidden();
+        $this->get('/vehiculos')->assertOk()->assertDontSee('ELECTRIC AVENUE');
+
+        $password->update(['can_view_electric_avenue' => true, 'is_active' => false]);
+        $this->get('/electric-avenue')->assertForbidden();
+
+        $this->post('/salir')->assertSessionMissing('frontend_password_id');
+        $this->get('/electric-avenue')->assertRedirect('/');
     }
 }

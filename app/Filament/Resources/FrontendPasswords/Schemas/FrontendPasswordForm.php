@@ -38,6 +38,10 @@ class FrontendPasswordForm
                         Toggle::make('is_active')
                             ->label('Activa')
                             ->default(true),
+                        Toggle::make('can_view_electric_avenue')
+                            ->label('Ver ELECTRIC AVENUE')
+                            ->helperText('Permite acceder a la lista ELECTRIC AVENUE. La lista general sigue disponible.')
+                            ->default(false),
                     ])
                     ->columns(2),
             ]);
