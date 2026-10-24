@@ -417,18 +417,15 @@
                                                         class="photo-link"
                                                     >
                                                         <img
-                                                            src="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex, 'thumbnail' => 1]) }}"
+                                                            data-src="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex, 'thumbnail' => 1]) }}"
                                                             alt="Foto del trabajo de {{ $vehicleWork->vehicle }}"
                                                             class="photo-thumb"
-                                                            loading="lazy"
                                                             decoding="async"
                                                             width="92"
                                                             height="92"
-                                                            onerror="this.closest('.photo-item').querySelector('button').hidden = false"
-                                                            onload="this.closest('.photo-item').querySelector('button').hidden = true"
                                                         >
                                                     </a>
-                                                    <button type="button" class="photo-retry" hidden onclick="const img = this.parentElement.querySelector('img'); this.hidden = true; const url = new URL(img.src); url.searchParams.set('retry', Date.now()); img.src = url.href;">Reintentar foto</button>
+                                                    <button type="button" class="photo-retry" hidden>Reintentar foto</button>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -481,5 +478,54 @@
                 @endif
             </nav>
         </main>
+        <script>
+            (() => {
+                const queue = [];
+                let active = 0;
+                function enqueue(img) {
+                    if (img.dataset.pending === '1') return;
+                    img.dataset.pending = '1';
+                    img.closest('.photo-item').querySelector('button').hidden = true;
+                    queue.push(img);
+                    drain();
+                }
+                function drain() {
+                    while (active < 2 && queue.length) {
+                        const img = queue.shift();
+                        active++;
+                        const finish = (ok) => {
+                            img.onload = img.onerror = null;
+                            active--;
+                            img.dataset.pending = '0';
+                            if (!ok && !img.dataset.retried) {
+                                img.dataset.retried = '1';
+                                setTimeout(() => enqueue(img), 1500);
+                            } else {
+                                img.closest('.photo-item').querySelector('button').hidden = ok;
+                            }
+                            drain();
+                        };
+                        img.onload = () => finish(true);
+                        img.onerror = () => finish(false);
+                        const url = new URL(img.dataset.src);
+                        if (img.dataset.retried) url.searchParams.set('retry', Date.now());
+                        img.src = url.href;
+                    }
+                }
+                const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            observer.unobserve(entry.target);
+                            enqueue(entry.target);
+                        }
+                    });
+                }, { rootMargin: '200px' }) : null;
+                document.querySelectorAll('.photo-thumb').forEach(img => {
+                    img.closest('.photo-item').querySelector('button').addEventListener('click', () => enqueue(img));
+                    if (observer) observer.observe(img);
+                    else enqueue(img);
+                });
+            })();
+        </script>
     </body>
 </html>
