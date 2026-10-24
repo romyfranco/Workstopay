@@ -78,7 +78,8 @@ class FrontendAccessController extends Controller
                     });
                 })
                 ->latest()
-                ->get(),
+                ->orderByDesc('id')
+                ->paginate(15),
         ]);
     }
 
@@ -152,7 +153,7 @@ class FrontendAccessController extends Controller
         $disk = Storage::disk('public');
         abort_unless(is_string($path) && $disk->exists($path), 404);
 
-        return response($photos->watermark($disk->get($path)), 200, [
+        return response($photos->cached($path, $request->boolean('thumbnail')), 200, [
             'Content-Type' => 'image/jpeg',
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',

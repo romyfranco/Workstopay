@@ -243,4 +243,26 @@ class FrontendAccessTest extends TestCase
         $this->post('/salir')->assertSessionMissing('frontend_password_id');
         $this->get('/electric-avenue')->assertRedirect('/');
     }
+
+    public function test_both_lists_paginate_without_losing_or_duplicating_works(): void
+    {
+        $password = FrontendPassword::query()->create([
+            'name' => 'EV', 'password' => 'prueba', 'is_active' => true, 'can_view_electric_avenue' => true,
+        ]);
+        for ($i = 1; $i <= 16; $i++) {
+            VehicleWork::query()->create([
+                'plate' => 'P'.$i, 'vehicle' => 'EV AVENUE', 'job_description' => 'Trabajo',
+                'status' => VehicleWorkStatus::Completed, 'paid' => false, 'payment_sent' => false,
+            ]);
+        }
+        $this->withSession(['frontend_access_granted' => true, 'frontend_password_id' => $password->id]);
+        foreach (['/vehiculos', '/electric-avenue'] as $url) {
+            $first = $this->get($url)->assertOk()->assertSee('Siguiente')->viewData('vehicleWorks');
+            $second = $this->get($url.'?page=2')->assertOk()->assertSee('Anterior')->viewData('vehicleWorks');
+            $this->assertCount(15, $first);
+            $this->assertCount(1, $second);
+            $this->assertSame(16, $first->total());
+            $this->assertEmpty(array_intersect($first->pluck('id')->all(), $second->pluck('id')->all()));
+        }
+    }
 }

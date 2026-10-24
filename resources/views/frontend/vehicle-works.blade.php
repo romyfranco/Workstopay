@@ -179,6 +179,11 @@
                 gap: 10px;
             }
 
+            .photo-item { width: 94px; }
+            .photo-retry { width: 100%; padding: 8px 2px; cursor: pointer; }
+            .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 20px 0; }
+            .pagination a { color: var(--accent); font-weight: bold; }
+
             .photo-link {
                 display: block;
                 border-radius: 16px;
@@ -404,6 +409,7 @@
                                         @if (filled($vehicleWork->job_photos))
                                             <div class="photo-grid">
                                                 @foreach ($vehicleWork->job_photos as $photoIndex => $photo)
+                                                    <div class="photo-item">
                                                     <a
                                                         href="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex]) }}"
                                                         target="_blank"
@@ -411,12 +417,19 @@
                                                         class="photo-link"
                                                     >
                                                         <img
-                                                            src="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex]) }}"
+                                                            src="{{ route('frontend.vehicle-works.photo', [$vehicleWork, $photoIndex, 'thumbnail' => 1]) }}"
                                                             alt="Foto del trabajo de {{ $vehicleWork->vehicle }}"
                                                             class="photo-thumb"
                                                             loading="lazy"
+                                                            decoding="async"
+                                                            width="92"
+                                                            height="92"
+                                                            onerror="this.closest('.photo-item').querySelector('button').hidden = false"
+                                                            onload="this.closest('.photo-item').querySelector('button').hidden = true"
                                                         >
                                                     </a>
+                                                    <button type="button" class="photo-retry" hidden onclick="const img = this.parentElement.querySelector('img'); this.hidden = true; const url = new URL(img.src); url.searchParams.set('retry', Date.now()); img.src = url.href;">Reintentar foto</button>
+                                                    </div>
                                                 @endforeach
                                             </div>
                                         @else
@@ -458,6 +471,15 @@
                     </table>
                 </section>
             @endif
+            <nav class="pagination" aria-label="Paginacion de trabajos">
+                @if ($vehicleWorks->previousPageUrl())
+                    <a href="{{ $vehicleWorks->previousPageUrl() }}" rel="prev">Anterior</a>
+                @endif
+                <span>Pagina {{ $vehicleWorks->currentPage() }} de {{ $vehicleWorks->lastPage() }} · {{ $vehicleWorks->total() }} trabajos</span>
+                @if ($vehicleWorks->nextPageUrl())
+                    <a href="{{ $vehicleWorks->nextPageUrl() }}" rel="next">Siguiente</a>
+                @endif
+            </nav>
         </main>
     </body>
 </html>
