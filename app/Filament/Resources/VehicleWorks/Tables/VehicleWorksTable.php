@@ -10,12 +10,19 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class VehicleWorksTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort(fn (Builder $query): Builder => $query
+                ->orderByRaw(
+                    'case when status = ? then 0 when status = ? then 1 else 2 end',
+                    [VehicleWorkStatus::InProgress->value, VehicleWorkStatus::Waiting->value],
+                )
+                ->latest())
             ->columns([
                 TextColumn::make('plate')
                     ->label('Placa')
@@ -27,10 +34,14 @@ class VehicleWorksTable
                     ->sortable(),
                 TextColumn::make('job_description')
                     ->label('Descripcion')
+                    ->searchable()
+                    ->sortable()
                     ->limit(50)
                     ->wrap(),
                 TextColumn::make('comment')
                     ->label('Comentario')
+                    ->searchable()
+                    ->sortable()
                     ->limit(50)
                     ->wrap()
                     ->toggleable()
