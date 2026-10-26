@@ -7,6 +7,8 @@ use App\Models\FrontendPassword;
 use App\Models\VehicleWork;
 use App\Services\AccessLogService;
 use App\Services\FrontendPhotoService;
+use App\Services\PaymentReportedNotifier;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
@@ -97,17 +99,22 @@ class FrontendAccessController extends Controller
             abort_unless($this->canViewElectricAvenue($request), 403);
         }
 
-        abort_unless(
-            $vehicleWork->status === VehicleWorkStatus::Completed
-            && ! $vehicleWork->paid
-            && ! $vehicleWork->payment_sent,
-            404,
-        );
+        DB::transaction(function () use ($request, $vehicleWork, $validated): void {
+            $work = VehicleWork::query()->lockForUpdate()->findOrFail($vehicleWork->id);
+            abort_unless(
+                $work->status === VehicleWorkStatus::Completed
+                && ! $work->paid
+                && ! $work->payment_sent,
+                404,
+            );
 
-        $vehicleWork->forceFill([
-            'comment' => blank($validated['comment'] ?? null) ? null : $validated['comment'],
-            'payment_sent' => true,
-        ])->save();
+            $work->forceFill([
+                'comment' => blank($validated['comment'] ?? null) ? null : $validated['comment'],
+                'payment_sent' => true,
+            ])->save();
+
+            app(PaymentReportedNotifier::class)->send($work, (string) $request->session()->get('frontend_access_name', 'Acceso frontend'));
+        });
 
         return redirect()
             ->route($request->input('list') === 'electric-avenue' ? 'frontend.electric-avenue' : 'frontend.vehicle-works')
